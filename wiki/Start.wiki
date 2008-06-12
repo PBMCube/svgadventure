@@ -1,4 +1,4 @@
-#summary Start page. Project description and table of wiki contents.
+#summary Start page. Project description and table of contents.
 
 = svgAdventure wiki =
 
