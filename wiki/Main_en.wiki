@@ -5,5 +5,5 @@
  * [Goals_en Project's goals]
  * [ToDo_en ToDo]
  * [Features_en Features]
- * [Requirement_en System requirement, browser compatibility]
+ * [Requirements_en System requirements, browser compatibility]
  * [ProgrammersManual_en Create your own point'n'click game with svgAdventure]
