@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru">
+<head>
+<title>SVG</title>
+<link href="stylesheet.css" type="text/css" rel="stylesheet" />
+</head>
+<body onload="init();">
+<div id="header" align="top">
+<h1>SVG point'n'click</h1>
+</div>
+<div id="main">
+<script type="Text/ecmascript" src="point-n-click.js"/>
+<object type="image/svg+xml"
+        data="viewport.svg"
+        width="640" height="480"
+        id="gamescreen">
+Browser not supported (IE with no SVG plugin?).
+</object>
+</div>
+<div id="controls">
+<p id="hint">
+Hello.
+</p>
+</div>
+</body>
+</html>
