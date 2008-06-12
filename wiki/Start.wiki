@@ -1,0 +1,5 @@
+#summary Start page. Project description and table of wiki contents.
+
+= svgAdventure wiki =
+
+This wiki has [Main_en English]  and [Main_ru Russian] versions.
