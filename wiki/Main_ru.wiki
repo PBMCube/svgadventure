@@ -3,5 +3,5 @@
 = svgAdventure =
 
  * [Goals_ru Цели]
- * [Requirement_ru Системные требования и совместимость]
+ * [Requirements_ru Системные требования и совместимость]
  * [ProgrammersManual_ru Делаем собственный квест для svgAdventure]
