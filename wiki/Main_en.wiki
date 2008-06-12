@@ -1,0 +1,9 @@
+#summary svgAdventure -- Main Page
+
+= svgAdventure =
+
+ * [Goals_en Project's goals]
+ * [ToDo_en ToDo]
+ * [Features_en Features]
+ * [Requirement_en System requirement, browser compatibility]
+ * [ProgrammersManual_en Create your own point'n'click game with svgAdventure]
