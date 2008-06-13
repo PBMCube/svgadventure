@@ -10,6 +10,7 @@ const originalCellSizeY = 180;
 var hintText;
 var svgDocument;
 var doorAttribs = [];
+var landscape = new Array(8);
 var heroX = 7;
 var heroY = 7;
 var targetX = 7;
@@ -42,21 +43,27 @@ function advance() {
     } else {
         direction = ontarget;
     }
+    var newHeroX = heroX;
+    var newHeroY = heroY;
     switch (direction) {
     case east:
-        heroX++;
+        newHeroX++;
         break;
     case west:
-        heroX--;
+        newHeroX--;
         break;
     case south:
-        heroY++;
+        newHeroY++;
         break;
     case north:
-        heroY--;
+        newHeroY--;
         break;
     case ontarget:
         break;
+    }
+    if (landscape[newHeroY][newHeroX] != 1) {
+        heroX = newHeroX;
+        heroY = newHeroY;
     }
     phase = ++phase % 2;
     phaseX = phase * originalCellSizeX;
