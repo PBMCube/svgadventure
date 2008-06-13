@@ -9,4 +9,5 @@ function sceneSetup() {
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
     createDoor(0, 7, 'scene001', 0, 1);
+    createObject(10, 5, 20, 20, 'sc002_obj01.png', 'Crystal Rock');
 }

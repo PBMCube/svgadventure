@@ -10,6 +10,7 @@ const originalCellSizeY = 180;
 var hintText;
 var svgDocument;
 var doorAttribs = [];
+var objects = [];
 var landscape = new Array(8);
 var heroX = 7;
 var heroY = 7;
@@ -64,6 +65,9 @@ function advance() {
     if (landscape[newHeroY][newHeroX] != 1) {
         heroX = newHeroX;
         heroY = newHeroY;
+    } else {
+        targetX = heroX;
+        targetY = heroY;
     }
     phase = ++phase % 2;
     phaseX = phase * originalCellSizeX;
@@ -103,6 +107,14 @@ function goDoor(door) {
     var doorsCount = oldDoors.length;
     for (i = 0; i < doorsCount; i++) {
         doorsContainer.removeChild(oldDoors[i]);
+    }
+    // Remove old objects
+    objects = [];
+    var objectsContainer = svgDocument.getElementById('objects');
+    var oldObjects = objectsContainer.getElementsByTagName('svg');
+    var objectsCount = oldObjects.length;
+    for (i = 0; i < objectsCount; i++) {
+        objectsContainer.removeChild(oldObjects[i]);
     }
     loadScene(newScene);
 }
@@ -148,6 +160,9 @@ function onMouseOverElement(evt) {
     if (evt.target.id.match('door')) {
         hintText.nodeValue = 
             evt.target.getElementsByTagName('desc')[0].firstChild.nodeValue;
+    } else if (evt.target.id.match('object')) {
+        hintText.nodeValue =         
+            evt.target.parentNode.getAttribute('desc');
     }
 }
 
@@ -190,6 +205,63 @@ function createDoor(x, y, targetScene, newX, newY) {
     );
     svgDocument.getElementById('doors').appendChild(
         newDoor
+    );
+}
+
+function createObject(x, y,
+                      xSize, ySize,
+                      objectFile,
+                      objectName)
+{
+    // Object information
+    var n = objects.push({}) - 1;
+    objects[n]['x'] = x;
+    objects[n]['y'] = y;
+    objects[n]['name'] = objectName;
+    // Object image
+    var newObject = svgDocument.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'svg'
+    );
+    newObject.setAttribute(
+        'x',
+        (x * cellSizeX) + ((cellSizeX / 2) - (xSize / 2))
+    );
+    newObject.setAttribute(
+        'y',
+        (y * cellSizeY) + (cellSizeY - ySize)
+    );
+    newObject.setAttribute('width', xSize);
+    newObject.setAttribute('height', ySize);
+    newObject.setAttribute(
+        'viewBox',
+        '0 0 ' + xSize + ' ' + ySize
+    );
+    newObject.setAttribute('desc', objectName)
+    var newObjectImage = svgDocument.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'image'
+    );
+    newObjectImage.setAttributeNS(
+        'http://www.w3.org/1999/xlink',
+        'xlink:href',
+        'sc001_obj01.png'
+    );
+    newObjectImage.setAttribute('width', xSize);
+    newObjectImage.setAttribute('height', ySize);
+    newObjectImage.setAttribute('id', 'object' + n);
+    newObject.appendChild(newObjectImage);
+    svgDocument.getElementById('objects').appendChild(
+        newObject
+    );
+    // On mouse over show hint
+    newObject.addEventListener(
+        'mouseover',
+        onMouseOverElement,
+        false
+    );
+    svgDocument.getElementById('objects').appendChild(
+        newObject
     );
 }
 
