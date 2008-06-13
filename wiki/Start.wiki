@@ -2,4 +2,4 @@
 
 = svgAdventure wiki =
 
-This wiki has [Main_en English]  and [Main_ru Russian] versions.
+This wiki has [Main_en English] (not so useful now) and [Main_ru Russian] versions.
