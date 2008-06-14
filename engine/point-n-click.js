@@ -137,7 +137,8 @@ function loadScene(sceneName) {
 
 // What we shall do when a new scene loads
 function initScene(sceneName) {
-    svgDocument.getElementById('backgroundImage').setAttribute(
+    svgDocument.getElementById('backgroundImage').setAttributeNS(
+        'http://www.w3.org/1999/xlink',
         'xlink:href',
         sceneName + '.png'
     );
@@ -161,7 +162,7 @@ function onMouseOverElement(evt) {
         hintText.nodeValue = 
             evt.target.getElementsByTagName('desc')[0].firstChild.nodeValue;
     } else if (evt.target.id.match('object')) {
-        hintText.nodeValue =         
+        hintText.nodeValue =
             evt.target.parentNode.getAttribute('desc');
     }
 }
