@@ -3,12 +3,17 @@ const south = 1;
 const east = 2;
 const north = 3;
 const ontarget = 4;
+const walk = 0;
+const get = 1;
+const use = 2;
+const talk = 3;
 const cellSizeX = 40;
 const cellSizeY = 60;
 const originalCellSizeX = 120;
 const originalCellSizeY = 180;
 var hintText;
 var svgDocument;
+var modesDocument;
 var doorAttribs = [];
 var objects = [];
 var landscape = new Array(8);
@@ -20,6 +25,7 @@ var direction = 1;
 var directionY;
 var phase = 2;
 var phaseX;
+var mode = walk;
 
 // Change the scene (this function will be called every moment)
 function advance() {
@@ -147,23 +153,76 @@ function initScene(sceneName) {
 
 // Clear hint text
 function clearHint() {
-    hintText.nodeValue = "";
+    switch (mode) {
+    case walk:
+        hintText.nodeValue = "Go to ";
+        break;
+    case get:
+        hintText.nodeValue = "Get ";
+        break;
+    case use:
+        hintText.nodeValue = "Use ";
+        break;
+    case talk:
+        hintText.nodeValue = "Talk to ";
+        break;
+    }
 }
 
 // Go to clicked position
 function onClickToBackground(evt) {
-    targetX = parseInt(evt.clientX / cellSizeX);
-    targetY = parseInt(evt.clientY / cellSizeY);
+    if (mode == walk) {
+        targetX = parseInt(evt.clientX / cellSizeX);
+        targetY = parseInt(evt.clientY / cellSizeY);
+    }
+}
+
+function onClickToObject(evt) {
+    // User click to logical coordinates (clickX, clickY)
+    var clickX = parseInt(evt.clientX / cellSizeX);
+    var clickY = parseInt(evt.clientY / cellSizeY);
+    // ...according to action mode:
+    switch (mode) {
+    case walk:
+        targetX = clickX;
+        targetY = clickY;
+        break;
+    case get:
+        if ((Math.abs(heroX - clickX)) < 2 &&
+             Math.abs(heroY - clickY) < 2)
+        {
+            alert('get');
+        }
+        break;
+    case use:
+        if ((Math.abs(heroX - clickX)) < 2 &&
+             Math.abs(heroY - clickY) < 2)
+        {
+            alert('use');
+        }
+        break;
+    case talk:
+        if ((Math.abs(heroX - clickX)) < 2 &&
+             Math.abs(heroY - clickY) < 2)
+        {
+            alert('talk');
+        }
+        break;
+    }
 }
 
 // Event dispatcher: redirects "mouseOver" events
 function onMouseOverElement(evt) {
     if (evt.target.id.match('door')) {
-        hintText.nodeValue = 
-            evt.target.getElementsByTagName('desc')[0].firstChild.nodeValue;
+        if (mode == walk) {
+            hintText.nodeValue = hintText.nodeValue +
+                evt.target.getElementsByTagName('desc')[0].firstChild.nodeValue;
+        }
     } else if (evt.target.id.match('object')) {
-        hintText.nodeValue =
+        hintText.nodeValue =  hintText.nodeValue +
             evt.target.parentNode.getAttribute('desc');
+    } else {
+        clearHint();
     }
 }
 
@@ -190,7 +249,7 @@ function createDoor(x, y, targetScene, newX, newY) {
     newTitle.appendChild(svgDocument.createTextNode(targetScene));
     newDoor.appendChild(newTitle);
     var newDescription = svgDocument.createElement('desc');
-    newDescription.appendChild(svgDocument.createTextNode('To ' + targetScene));
+    newDescription.appendChild(svgDocument.createTextNode(targetScene));
     newDoor.appendChild(newDescription);
     // On click go to door
     newDoor.addEventListener(
@@ -261,13 +320,33 @@ function createObject(x, y,
         onMouseOverElement,
         false
     );
+    // On click determine the repspective action
+    newObject.addEventListener(
+        'click',
+        onClickToObject,
+        false
+    );
     svgDocument.getElementById('objects').appendChild(
         newObject
     );
 }
 
+function changeMode(evt) {
+    if (evt.target.id.match('go')) {
+        mode = walk;
+    } else if (evt.target.id.match('get')) {
+        mode = get;
+    } else if (evt.target.id.match('use')) {
+        mode = use;
+    } else if (evt.target.id.match('talk')) {
+        mode = talk;
+    }
+    clearHint();
+}
+
 function init() {
     hintText = document.getElementById('hint').firstChild;
+    // Connecting event listeners to viewport
     svgDocument=document.getElementById('gamescreen').contentDocument;
     // On click to background go to clicked postition
     svgDocument.getElementById('background').addEventListener('click',
@@ -279,6 +358,30 @@ function init() {
       clearHint,
       false
     );
+    // Connecting event listeners to controls
+    modesDocument=document.getElementById('modes').contentDocument;
+    // Adding event listener to mode buttons
+    modesDocument.getElementById('go').addEventListener(
+        'click',
+        changeMode,
+        false
+    );
+    modesDocument.getElementById('get').addEventListener(
+        'click',
+        changeMode,
+        false
+    );
+    modesDocument.getElementById('use').addEventListener(
+        'click',
+        changeMode,
+        false
+    );
+    modesDocument.getElementById('talk').addEventListener(
+        'click',
+        changeMode,
+        false
+    );
+    // Loading initial scene
     loadScene('scene001');
     // Change all the scene every half second
     setInterval("advance()" , 500);
