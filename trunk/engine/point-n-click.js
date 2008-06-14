@@ -11,6 +11,9 @@ const cellSizeX = 40;
 const cellSizeY = 60;
 const originalCellSizeX = 120;
 const originalCellSizeY = 180;
+const maximumBagSize = 4;
+const bagCellSizeX = 50;
+const bagCellSizeY = 50;
 var hintText;
 var svgDocument;
 var modesDocument;
@@ -26,6 +29,10 @@ var directionY;
 var phase = 2;
 var phaseX;
 var mode = walk;
+var deletedObjects = {};
+var currentScene;
+var bag = [];
+var bagDocument;
 
 // Change the scene (this function will be called every moment)
 function advance() {
@@ -139,6 +146,10 @@ function loadScene(sceneName) {
     script.setAttribute('onload', 'initScene("' + sceneName + '");');
     script.src = sceneName + '.js';
     head.appendChild(script);
+    currentScene = sceneName;
+    if (!deletedObjects[currentScene]) {
+        deletedObjects[currentScene] = [];
+    }
 }
 
 // What we shall do when a new scene loads
@@ -191,7 +202,7 @@ function onClickToObject(evt) {
         if ((Math.abs(heroX - clickX)) < 2 &&
              Math.abs(heroY - clickY) < 2)
         {
-            alert('get');
+            getObjectToBag(clickX, clickY);
         }
         break;
     case use:
@@ -223,6 +234,44 @@ function onMouseOverElement(evt) {
             evt.target.parentNode.getAttribute('desc');
     } else {
         clearHint();
+    }
+}
+
+// Collect objects
+function getObjectToBag(objectX, objectY) {
+    if (bag.length >= maximumBagSize) {
+        alert("The bag is full");
+        return;
+    }
+    var objectToGet;
+    for (i=0; i<objects.length; i++) {
+        if (objects[i]['x'] == objectX &&
+            objects[i]['y'] == objectY)
+        {
+            objectToGet = svgDocument.getElementById(
+                'object' + i + 'container'
+            );
+            svgDocument.getElementById('objects').removeChild(
+                objectToGet
+            );
+            deletedObjects[currentScene].push(objects[i]['name']);
+            bag.push(objects[i]);
+            objectToGet.setAttribute(
+                'x',
+                (bagCellSizeX * (bag.length - 1)) +
+                    (bagCellSizeX / 2) -
+                    (objectToGet.getAttribute('width') / 2) +
+                    2 * bag.length
+            );
+            objectToGet.setAttribute(
+                'y',
+                (bagCellSizeY / 2) -
+                    objectToGet.getAttribute('height') / 2
+            );
+            bagDocument.getElementById('bagPicture').appendChild(
+                objectToGet
+            );
+        }
     }
 }
 
@@ -273,6 +322,12 @@ function createObject(x, y,
                       objectFile,
                       objectName)
 {
+    var localDeleted = deletedObjects[currentScene];
+    if (!localDeleted.length < 1) {
+        if (localDeleted.indexOf(objectName) != -1) {
+            return;
+        }
+    }
     // Object information
     var n = objects.push({}) - 1;
     objects[n]['x'] = x;
@@ -297,6 +352,7 @@ function createObject(x, y,
         'viewBox',
         '0 0 ' + xSize + ' ' + ySize
     );
+    newObject.setAttribute('id', 'object' + n + 'container')
     newObject.setAttribute('desc', objectName)
     var newObjectImage = svgDocument.createElementNS(
         'http://www.w3.org/2000/svg',
@@ -381,6 +437,7 @@ function init() {
         changeMode,
         false
     );
+    bagDocument = document.getElementById('bag').contentDocument;
     // Loading initial scene
     loadScene('scene001');
     // Change all the scene every half second
