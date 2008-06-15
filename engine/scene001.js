@@ -1,3 +1,7 @@
+function useObject1() {
+    alert('You was used this rock');
+}
+
 function sceneSetup() {
     landscape = 
         [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -9,5 +13,6 @@ function sceneSetup() {
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
     createDoor(0, 0, 'scene002', 0, 6);
-    createObject(5, 5, 20, 20, 'sc001_obj01.png', 'Crystal Rock');
+    var n = createObject(5, 5, 20, 20, 'sc001_obj01.png', 'Crystal Rock');
+    objects[n]['use'] = useObject1;
 }

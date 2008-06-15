@@ -207,7 +207,7 @@ function onClickToObject(evt) {
         if ((Math.abs(heroX - clickX)) < 2 &&
              Math.abs(heroY - clickY) < 2)
         {
-            alert('use');
+            useObject(clickX, clickY);
         }
         break;
     case talk:
@@ -246,6 +246,9 @@ function getObjectToBag(objectX, objectY) {
         if (objects[i]['x'] == objectX &&
             objects[i]['y'] == objectY)
         {
+            if (!objects[i]['portable']) {
+                return;
+            }
             objectToGet = svgDocument.getElementById(
                 'object' + i + 'container'
             );
@@ -269,6 +272,19 @@ function getObjectToBag(objectX, objectY) {
             bagDocument.getElementById('bagPicture').appendChild(
                 objectToGet
             );
+        }
+    }
+}
+
+// Use object
+function useObject(objectX, objectY) {
+    for (i=0; i<objects.length; i++) {
+        if (objects[i]['x'] == objectX &&
+            objects[i]['y'] == objectY)
+        {
+            if (objects[i]['use'] != null) {
+                objects[i]['use']();
+            }
         }
     }
 }
@@ -331,6 +347,8 @@ function createObject(x, y,
     objects[n]['x'] = x;
     objects[n]['y'] = y;
     objects[n]['name'] = objectName;
+    objects[n]['use'] = null;
+    objects[n]['portable'] = false;
     // Object image
     var newObject = svgDocument.createElementNS(
         'http://www.w3.org/2000/svg',
@@ -383,6 +401,7 @@ function createObject(x, y,
     svgDocument.getElementById('objects').appendChild(
         newObject
     );
+    return n;
 }
 
 function changeMode(evt) {
