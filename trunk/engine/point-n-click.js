@@ -143,23 +143,21 @@ function loadScene(sceneName) {
     script = document.createElement('script');
     script.type = 'text/ecmascript';
     script.id = 'SceneScript';
-    script.setAttribute('onload', 'initScene("' + sceneName + '");');
+    script.setAttribute('onload', 'sceneSetup()');
     script.src = sceneName + '.js';
     head.appendChild(script);
+    // Remember new scene name
     currentScene = sceneName;
+    // On the first load create array for deleted objects
     if (!deletedObjects[currentScene]) {
         deletedObjects[currentScene] = [];
     }
-}
-
-// What we shall do when a new scene loads
-function initScene(sceneName) {
+    // Load new background
     svgDocument.getElementById('backgroundImage').setAttributeNS(
         'http://www.w3.org/1999/xlink',
         'xlink:href',
         sceneName + '.png'
     );
-    sceneSetup();
 }
 
 // Clear hint text
