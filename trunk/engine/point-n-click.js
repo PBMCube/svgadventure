@@ -7,6 +7,7 @@ const walk = 0;
 const get = 1;
 const use = 2;
 const talk = 3;
+const use_object = 4;
 const cellSizeX = 40;
 const cellSizeY = 60;
 const originalCellSizeX = 120;
@@ -33,6 +34,7 @@ var deletedObjects = {};
 var currentScene;
 var bag = [];
 var bagDocument;
+var currentObject;
 
 // Change the scene (this function will be called every moment)
 function advance() {
@@ -175,8 +177,14 @@ function clearHint() {
     case talk:
         hintText.nodeValue = "Talk to ";
         break;
+    case use_object:
+        hintText.nodeValue = "Drop " + currentObject;
     }
 }
+
+/*
+  Event handlers
+*/
 
 // Go to clicked position
 function onClickToBackground(evt) {
@@ -217,6 +225,12 @@ function onClickToObject(evt) {
             alert('talk');
         }
         break;
+    case use_object:
+        if ((Math.abs(heroX - clickX)) < 2 &&
+             Math.abs(heroY - clickY) < 2)
+        {
+            applyObject(currentObject, clickX, clickY);
+        }        
     }
 }
 
@@ -228,8 +242,15 @@ function onMouseOverElement(evt) {
                 evt.target.getElementsByTagName('desc')[0].firstChild.nodeValue;
         }
     } else if (evt.target.id.match('object')) {
-        hintText.nodeValue =  hintText.nodeValue +
-            evt.target.parentNode.getAttribute('desc');
+        if (mode == use_object) {
+            hintText.nodeValue = 'Apply ' +
+                currentObject + 
+                ' to ' +
+                evt.target.parentNode.getAttribute('desc');
+        } else {
+            hintText.nodeValue = hintText.nodeValue +
+                evt.target.parentNode.getAttribute('desc');
+        }
     } else {
         clearHint();
     }
@@ -269,12 +290,39 @@ function getObjectToBag(objectX, objectY) {
                 (bagCellSizeY / 2) -
                     objectToGet.getAttribute('height') / 2
             );
+            objectToGet.addEventListener(
+                'click',
+                onClickToBagContent,
+                false
+            );
             bagDocument.getElementById('bagPicture').appendChild(
                 objectToGet
             );
         }
     }
 }
+
+function changeMode(evt) {
+    if (evt.target.id.match('go')) {
+        mode = walk;
+    } else if (evt.target.id.match('get')) {
+        mode = get;
+    } else if (evt.target.id.match('use')) {
+        mode = use;
+    } else if (evt.target.id.match('talk')) {
+        mode = talk;
+    }
+    clearHint();
+}
+
+function onClickToBagContent(evt) {
+    mode = use_object;
+    currentObject = evt.target.parentNode.getAttribute('desc');
+}
+
+/*
+Functions to perform actions
+*/
 
 // Use object
 function useObject(objectX, objectY) {
@@ -288,6 +336,22 @@ function useObject(objectX, objectY) {
         }
     }
 }
+
+function applyObject(appliedObject, objectX, objectY) {
+    for (i=0; i<objects.length; i++) {
+        if (objects[i]['x'] == objectX &&
+            objects[i]['y'] == objectY)
+        {
+            if (objects[i]['apply'] != null) {
+                objects[i]['apply'](appliedObject);
+            }
+        }
+    }
+}
+
+/*
+Functions to create different scene elements
+*/
 
 // Create door
 function createDoor(x, y, targetScene, newX, newY) {
@@ -339,7 +403,7 @@ function createObject(x, y,
     var localDeleted = deletedObjects[currentScene];
     if (!localDeleted.length < 1) {
         if (localDeleted.indexOf(objectName) != -1) {
-            return;
+            return -1;
         }
     }
     // Object information
@@ -349,6 +413,7 @@ function createObject(x, y,
     objects[n]['name'] = objectName;
     objects[n]['use'] = null;
     objects[n]['portable'] = false;
+    objects[n]['apply'] = null;
     // Object image
     var newObject = svgDocument.createElementNS(
         'http://www.w3.org/2000/svg',
@@ -404,18 +469,7 @@ function createObject(x, y,
     return n;
 }
 
-function changeMode(evt) {
-    if (evt.target.id.match('go')) {
-        mode = walk;
-    } else if (evt.target.id.match('get')) {
-        mode = get;
-    } else if (evt.target.id.match('use')) {
-        mode = use;
-    } else if (evt.target.id.match('talk')) {
-        mode = talk;
-    }
-    clearHint();
-}
+/* */
 
 function init() {
     hintText = document.getElementById('hint').firstChild;
@@ -455,6 +509,11 @@ function init() {
         false
     );
     bagDocument = document.getElementById('bag').contentDocument;
+    // On mouse over bag background crear hint field
+    bagDocument.getElementById('things').addEventListener('mouseover',
+      clearHint,
+      false
+    );
     // Loading initial scene
     loadScene('scene001');
     // Change all the scene every half second
