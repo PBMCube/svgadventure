@@ -7,3 +7,5 @@
  * [Features_ru Что уже работает]
  * [Requirements_ru Системные требования и совместимость]
  * [ProgrammersManual_ru Делаем собственный квест для svgAdventure]
+ * [DevelopersManual_ru Разработчику: правим код svgAdventure]
+ * [HelpNeeded_ru Чем можно помочь проекту?]
