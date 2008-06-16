@@ -36,6 +36,17 @@ var bag = [];
 var bagDocument;
 var currentObject;
 
+// Fixing compatibility issue: Opera doesn't support
+// 'indexOf' method for arrays (it is not a standard
+// feature).
+// This is a simple DIY replacement.
+function indexOfValue(targetArray, value) {
+    for (var i=0; i < targetArray.length; i++) {
+        if (targetArray[i] == value) return i;
+    }
+    return -1;
+}
+
 // Change the scene (this function will be called every moment)
 function advance() {
     // Are we already in some door?
@@ -401,10 +412,8 @@ function createObject(x, y,
                       objectName)
 {
     var localDeleted = deletedObjects[currentScene];
-    if (!localDeleted.length < 1) {
-        if (localDeleted.indexOf(objectName) != -1) {
-            return -1;
-        }
+    if (indexOfValue(localDeleted, objectName) != -1) {
+        return -1;
     }
     // Object information
     var n = objects.push({}) - 1;
