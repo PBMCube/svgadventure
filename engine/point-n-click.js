@@ -267,6 +267,28 @@ function onMouseOverElement(evt) {
     }
 }
 
+function changeMode(evt) {
+    if (evt.target.id.match('go')) {
+        mode = walk;
+    } else if (evt.target.id.match('get')) {
+        mode = get;
+    } else if (evt.target.id.match('use')) {
+        mode = use;
+    } else if (evt.target.id.match('talk')) {
+        mode = talk;
+    }
+    clearHint();
+}
+
+function onClickToBagContent(evt) {
+    mode = use_object;
+    currentObject = evt.target.parentNode.getAttribute('desc');
+}
+
+/*
+Functions to perform actions
+*/
+
 // Collect objects
 function getObjectToBag(objectX, objectY) {
     if (bag.length >= maximumBagSize) {
@@ -312,28 +334,6 @@ function getObjectToBag(objectX, objectY) {
         }
     }
 }
-
-function changeMode(evt) {
-    if (evt.target.id.match('go')) {
-        mode = walk;
-    } else if (evt.target.id.match('get')) {
-        mode = get;
-    } else if (evt.target.id.match('use')) {
-        mode = use;
-    } else if (evt.target.id.match('talk')) {
-        mode = talk;
-    }
-    clearHint();
-}
-
-function onClickToBagContent(evt) {
-    mode = use_object;
-    currentObject = evt.target.parentNode.getAttribute('desc');
-}
-
-/*
-Functions to perform actions
-*/
 
 // Use object
 function useObject(objectX, objectY) {
