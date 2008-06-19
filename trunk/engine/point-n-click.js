@@ -31,6 +31,7 @@ var phase = 2;
 var phaseX;
 var mode = walk;
 var deletedObjects = {};
+var addedObjects = {};
 var currentScene;
 var bag = [];
 var bagDocument;
@@ -50,7 +51,7 @@ function indexOfValue(targetArray, value) {
 // Change the scene (this function will be called every moment)
 function advance() {
     // Are we already in some door?
-    for (i=0; i<doorAttribs.length; i++) {
+    for (var i=0; i<doorAttribs.length; i++) {
         if (heroX == doorAttribs[i]['x'] &&
             heroY == doorAttribs[i]['y'])
         {
@@ -131,7 +132,7 @@ function goDoor(door) {
     var doorsContainer = svgDocument.getElementById('doors');
     var oldDoors = doorsContainer.getElementsByTagName('circle');
     var doorsCount = oldDoors.length;
-    for (i = 0; i < doorsCount; i++) {
+    for (var i = 0; i < doorsCount; i++) {
         doorsContainer.removeChild(oldDoors[i]);
     }
     // Remove old objects
@@ -139,7 +140,7 @@ function goDoor(door) {
     var objectsContainer = svgDocument.getElementById('objects');
     var oldObjects = objectsContainer.getElementsByTagName('svg');
     var objectsCount = oldObjects.length;
-    for (i = 0; i < objectsCount; i++) {
+    for (var i = 0; i < objectsCount; i++) {
         objectsContainer.removeChild(oldObjects[i]);
     }
     loadScene(newScene);
@@ -165,6 +166,10 @@ function loadScene(sceneName) {
     if (!deletedObjects[currentScene]) {
         deletedObjects[currentScene] = [];
     }
+    // On the first load create array for dropped objects
+    if (!addedObjects[currentScene]) {
+        addedObjects[currentScene] = [];
+    }
     // Load new background
     svgDocument.getElementById('backgroundImage').setAttributeNS(
         'http://www.w3.org/1999/xlink',
@@ -189,7 +194,7 @@ function clearHint() {
         hintText.nodeValue = "Talk to ";
         break;
     case use_object:
-        hintText.nodeValue = "Drop " + currentObject;
+        hintText.nodeValue = "Drop " + currentObject.getAttribute('desc');
     }
 }
 
@@ -197,11 +202,36 @@ function clearHint() {
   Event handlers
 */
 
-// Go to clicked position
+// If the map itself was clicked...
 function onClickToBackground(evt) {
-    if (mode == walk) {
-        targetX = parseInt(evt.clientX / cellSizeX);
-        targetY = parseInt(evt.clientY / cellSizeY);
+    var clickX = parseInt(evt.clientX / cellSizeX);
+    var clickY = parseInt(evt.clientY / cellSizeY);
+    switch (mode) {
+    case walk:
+        targetX = clickX;
+        targetY = clickY;
+        break;
+    case use_object:
+        for (var i=0; i<objects.length; i++) {
+            if (objects[i]['x'] == clickX &&
+                objects[i]['y'] == clickY)
+            {
+                return;
+            }
+        }
+        var objectToAdd = currentObject;
+        bagDocument.getElementById('bagPicture').removeChild(objectToAdd);
+        var n = addObject(
+            clickX,
+            clickY,
+            bag[currentBagItem]['xSize'],
+            bag[currentBagItem]['ySize'],
+            bag[currentBagItem]['file'],
+            currentObject.getAttribute('desc')
+        );
+        objects[n] = bag.splice(currentBagItem, 1)[0];
+        objects[n]['x'] = clickX;
+        objects[n]['y'] = clickY;
     }
 }
 
@@ -240,8 +270,12 @@ function onClickToObject(evt) {
         if ((Math.abs(heroX - clickX)) < 2 &&
              Math.abs(heroY - clickY) < 2)
         {
-            applyObject(currentObject, clickX, clickY);
-        }        
+            applyObject(
+                currentObject.getAttribute('desc'),
+                clickX,
+                clickY
+            );
+        }
     }
 }
 
@@ -255,7 +289,7 @@ function onMouseOverElement(evt) {
     } else if (evt.target.id.match('object')) {
         if (mode == use_object) {
             hintText.nodeValue = 'Apply ' +
-                currentObject + 
+                currentObject.getAttribute('desc') + 
                 ' to ' +
                 evt.target.parentNode.getAttribute('desc');
         } else {
@@ -282,7 +316,13 @@ function changeMode(evt) {
 
 function onClickToBagContent(evt) {
     mode = use_object;
-    currentObject = evt.target.parentNode.getAttribute('desc');
+    currentObject = evt.target.parentNode;
+    for (var i=0; i<bag.length; i++) {
+        if (currentObject.getAttribute('desc') == bag[i]['name']) {
+            currentBagItem = i;
+            return;
+        }
+    }
 }
 
 /*
@@ -296,7 +336,7 @@ function getObjectToBag(objectX, objectY) {
         return;
     }
     var objectToGet;
-    for (i=0; i<objects.length; i++) {
+    for (var i=0; i<objects.length; i++) {
         if (objects[i]['x'] == objectX &&
             objects[i]['y'] == objectY)
         {
@@ -304,13 +344,13 @@ function getObjectToBag(objectX, objectY) {
                 return;
             }
             objectToGet = svgDocument.getElementById(
-                'object' + i + 'container'
+                objects[i]['name'] + ' container'
             );
             svgDocument.getElementById('objects').removeChild(
                 objectToGet
             );
             deletedObjects[currentScene].push(objects[i]['name']);
-            bag.push(objects[i]);
+            bag.push(objects.splice(i, 1)[0]);
             objectToGet.setAttribute(
                 'x',
                 (bagCellSizeX * (bag.length - 1)) +
@@ -337,7 +377,7 @@ function getObjectToBag(objectX, objectY) {
 
 // Use object
 function useObject(objectX, objectY) {
-    for (i=0; i<objects.length; i++) {
+    for (var i=0; i<objects.length; i++) {
         if (objects[i]['x'] == objectX &&
             objects[i]['y'] == objectY)
         {
@@ -349,7 +389,7 @@ function useObject(objectX, objectY) {
 }
 
 function applyObject(appliedObject, objectX, objectY) {
-    for (i=0; i<objects.length; i++) {
+    for (var i=0; i<objects.length; i++) {
         if (objects[i]['x'] == objectX &&
             objects[i]['y'] == objectY)
         {
@@ -406,6 +446,8 @@ function createDoor(x, y, targetScene, newX, newY) {
     );
 }
 
+// Hi-level wrapper for the addObject()
+// Don't create delete objects
 function createObject(x, y,
                       xSize, ySize,
                       objectFile,
@@ -415,10 +457,27 @@ function createObject(x, y,
     if (indexOfValue(localDeleted, objectName) != -1) {
         return -1;
     }
+    n = addObject(
+        x, y,
+        xSize, ySize,
+        objectFile,
+        objectName
+    );
+    return n;
+}
+
+function addObject(x, y,
+                      xSize, ySize,
+                      objectFile,
+                      objectName)
+{
     // Object information
     var n = objects.push({}) - 1;
     objects[n]['x'] = x;
     objects[n]['y'] = y;
+    objects[n]['xSize'] = xSize;
+    objects[n]['ySize'] = ySize;
+    objects[n]['file'] = objectFile;
     objects[n]['name'] = objectName;
     objects[n]['use'] = null;
     objects[n]['portable'] = false;
@@ -442,7 +501,7 @@ function createObject(x, y,
         'viewBox',
         '0 0 ' + xSize + ' ' + ySize
     );
-    newObject.setAttribute('id', 'object' + n + 'container')
+    newObject.setAttribute('id', objectName + ' container')
     newObject.setAttribute('desc', objectName)
     var newObjectImage = svgDocument.createElementNS(
         'http://www.w3.org/2000/svg',
