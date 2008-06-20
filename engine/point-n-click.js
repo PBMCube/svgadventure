@@ -30,12 +30,18 @@ var directionY;
 var phase = 2;
 var phaseX;
 var mode = walk;
+// Array of _names_ of deleted objects
 var deletedObjects = {};
+// Array of added objects
 var addedObjects = {};
 var currentScene;
 var bag = [];
 var bagDocument;
 var currentObject;
+
+/*
+  Some general purpose functions
+*/
 
 // Fixing compatibility issue: Opera doesn't support
 // 'indexOf' method for arrays (it is not a standard
@@ -47,6 +53,19 @@ function indexOfValue(targetArray, value) {
     }
     return -1;
 }
+
+// Converts HTML collection to array of objects
+// Needed to delete all objects in some collection
+function collection2array(c) {
+        a = new Array;
+        for (var i=0; i<c.length; i++) {
+            a.push(c[i]);
+        }
+        return a;
+    }
+
+/*
+*/
 
 // Change the scene (this function will be called every moment)
 function advance() {
@@ -138,7 +157,9 @@ function goDoor(door) {
     // Remove old objects
     objects = [];
     var objectsContainer = svgDocument.getElementById('objects');
-    var oldObjects = objectsContainer.getElementsByTagName('svg');
+    var oldObjects = collection2array(
+        objectsContainer.getElementsByTagName('svg')
+    );
     var objectsCount = oldObjects.length;
     for (var i = 0; i < objectsCount; i++) {
         objectsContainer.removeChild(oldObjects[i]);
@@ -169,6 +190,20 @@ function loadScene(sceneName) {
     // On the first load create array for dropped objects
     if (!addedObjects[currentScene]) {
         addedObjects[currentScene] = [];
+    } else {
+        var n;
+        for (var i=0; i<addedObjects[currentScene].length; i++) {
+            // FIXME: call format of addObjects() looks underoptimezed
+            n = addObject(
+                addedObjects[currentScene][i]['x'],
+                addedObjects[currentScene][i]['y'],
+                addedObjects[currentScene][i]['xSize'],
+                addedObjects[currentScene][i]['ySize'],
+                addedObjects[currentScene][i]['file'],
+                addedObjects[currentScene][i]['name']
+            );
+            objects[n] = addedObjects[currentScene][i];
+        }
     }
     // Load new background
     svgDocument.getElementById('backgroundImage').setAttributeNS(
@@ -232,6 +267,9 @@ function onClickToBackground(evt) {
         objects[n] = bag.splice(currentBagItem, 1)[0];
         objects[n]['x'] = clickX;
         objects[n]['y'] = clickY;
+        addedObjects[currentScene].push(objects[n]);
+        mode = walk;
+        clearHint();
     }
 }
 
@@ -349,7 +387,8 @@ function getObjectToBag(objectX, objectY) {
             svgDocument.getElementById('objects').removeChild(
                 objectToGet
             );
-            deletedObjects[currentScene].push(objects[i]['name']);
+            var n =
+                deletedObjects[currentScene].push(objects[i]['name']) - 1;
             bag.push(objects.splice(i, 1)[0]);
             objectToGet.setAttribute(
                 'x',
@@ -371,6 +410,18 @@ function getObjectToBag(objectX, objectY) {
             bagDocument.getElementById('bagPicture').appendChild(
                 objectToGet
             );
+            // Get the index of just deleted object
+            // and remove it from added objects
+            // of this scene
+            for (var j=0; j < addedObjects[currentScene].length; j++) {
+                if (
+                    addedObjects[currentScene][j]['name'] ==
+                    deletedObjects[currentScene][j]
+                )
+                {
+                    addedObjects[currentScene].splice(j, 1);
+                }
+            }
         }
     }
 }
