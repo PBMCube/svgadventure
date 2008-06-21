@@ -38,6 +38,8 @@ var currentScene;
 var bag = [];
 var bagDocument;
 var currentObject;
+var currentDialog = [];
+var currentPhrase = 0;
 
 /*
   Some general purpose functions
@@ -233,6 +235,92 @@ function clearHint() {
     }
 }
 
+// Add NPC words
+function say(npcText) {
+    document.getElementById('NPC').innerHTML = npcText;
+}
+
+// Add PC phrase variant
+function addPhrase(phrase, func) {
+    newPhraseParagraph = document.createElement('p');
+    newPhraseParagraph.innerHTML = phrase;
+    newPhraseParagraph.addEventListener(
+        'mouseover',
+        highlight,
+        false
+    );
+    newPhraseParagraph.addEventListener(
+        'mouseout',
+        unhighlight,
+        false
+    );
+    newPhraseParagraph.addEventListener(
+        'click',
+        func,
+        false
+    );
+    document.getElementById('PC').appendChild(
+        newPhraseParagraph
+    );
+}
+
+// Clear answer variants
+function clearPhraseVariants() {
+    say('');
+    var pcWidget = document.getElementById('PC');
+    var variants = collection2array(
+        pcWidget.getElementsByTagName('p')
+    );
+    for (var i=0; i<variants.length; i++) {
+        pcWidget.removeChild(variants[i]);
+    }
+}
+
+// Show answer variants
+// Event handlers in JavaScript,
+// unlike signals/slots in Qt,
+// don't have arguments. So, we
+// need some functional programming
+// now. ;) We create anonimous
+// function (goPhrase() with some
+// argument) for handling a click
+// to every phrase.
+function goPhrase(phraseNum) {
+    function makeClosure(func, arg) {
+        return function() {
+            func(arg);
+        }
+    }
+    clearPhraseVariants();
+    if (!currentDialog[phraseNum]) {
+        alert('No such phrase');
+        return;
+    }
+    var phrase = currentDialog[phraseNum];
+    say(phrase['start']);
+    var answers = phrase['answers'];
+    for (var i=0; i<answers.length; i++) {
+        addPhrase(
+            answers[i]['variant'],
+            makeClosure(answers[i]['func'], answers[i]['arg'])
+        );
+    }
+}
+
+function talkTo(objectX, objectY) {
+    for (var i=0; i<objects.length; i++) {
+        if (objects[i]['x'] == objectX &&
+            objects[i]['y'] == objectY)
+        {
+            if (objects[i]['talking']) {
+                currentDialog = objects[i]['dialog'];
+                //currentPhrase = 0;
+                goPhrase(0);
+            }
+        }
+    }
+}
+
 /*
   Event handlers
 */
@@ -301,7 +389,7 @@ function onClickToObject(evt) {
         if ((Math.abs(heroX - clickX)) < 2 &&
              Math.abs(heroY - clickY) < 2)
         {
-            alert('talk');
+            talkTo(clickX, clickY);
         }
         break;
     case use_object:
@@ -361,6 +449,14 @@ function onClickToBagContent(evt) {
             return;
         }
     }
+}
+
+function highlight(evt) {
+    evt.target.setAttribute('class', 'highlighted');
+}
+
+function unhighlight(evt) {
+    evt.target.setAttribute('class', 'not-highlighted');
 }
 
 /*
@@ -533,6 +629,8 @@ function addObject(x, y,
     objects[n]['use'] = null;
     objects[n]['portable'] = false;
     objects[n]['apply'] = null;
+    objects[n]['talking'] = false;
+    objects[n]['dialog'] = null;
     // Object image
     var newObject = svgDocument.createElementNS(
         'http://www.w3.org/2000/svg',
@@ -561,7 +659,7 @@ function addObject(x, y,
     newObjectImage.setAttributeNS(
         'http://www.w3.org/1999/xlink',
         'xlink:href',
-        'sc001_obj01.png'
+        objectFile
     );
     newObjectImage.setAttribute('width', xSize);
     newObjectImage.setAttribute('height', ySize);
