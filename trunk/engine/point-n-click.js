@@ -75,7 +75,6 @@ function advance() {
         if (heroX == doorAttribs[i]['x'] &&
             heroY == doorAttribs[i]['y'])
         {
-            hintText.nodeValue = "In door!";
             goDoor(doorAttribs[i]);
         }
     }
