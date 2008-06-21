@@ -39,7 +39,6 @@ var bag = [];
 var bagDocument;
 var currentObject;
 var currentDialog = [];
-var currentPhrase = 0;
 
 /*
   Some general purpose functions
@@ -314,7 +313,6 @@ function talkTo(objectX, objectY) {
         {
             if (objects[i]['talking']) {
                 currentDialog = objects[i]['dialog'];
-                //currentPhrase = 0;
                 goPhrase(0);
             }
         }
@@ -470,6 +468,7 @@ function getObjectToBag(objectX, objectY) {
         return;
     }
     var objectToGet;
+    // Find object in clicked position...
     for (var i=0; i<objects.length; i++) {
         if (objects[i]['x'] == objectX &&
             objects[i]['y'] == objectY)
@@ -477,14 +476,39 @@ function getObjectToBag(objectX, objectY) {
             if (!objects[i]['portable']) {
                 return;
             }
+            // Delete object from game screen
             objectToGet = svgDocument.getElementById(
                 objects[i]['name'] + ' container'
             );
             svgDocument.getElementById('objects').removeChild(
                 objectToGet
             );
-            var n =
-                deletedObjects[currentScene].push(objects[i]['name']) - 1;
+            // Get the index of just deleted object
+            // and remove it from addedObjects[]
+            // of this scene, if it is not native
+            var nativeObject = true;
+            for (var j=0; j < addedObjects[currentScene].length; j++) {
+                if (
+                    addedObjects[currentScene][j]['name'] ==
+                    objects[i]['name']
+                )
+                {
+                    addedObjects[currentScene].splice(j, 1);
+                    nativeObject = false;
+                }
+            }
+            // ...else add it to deletedObjects[]
+            if (nativeObject) {
+                if (
+                    indexOfValue(deletedObjects, objects[i]['name'])
+                    == -1
+                )
+                {
+                    deletedObjects[currentScene].push(
+                        objects[i]['name']
+                    );
+                }
+            }
             bag.push(objects.splice(i, 1)[0]);
             objectToGet.setAttribute(
                 'x',
@@ -506,18 +530,6 @@ function getObjectToBag(objectX, objectY) {
             bagDocument.getElementById('bagPicture').appendChild(
                 objectToGet
             );
-            // Get the index of just deleted object
-            // and remove it from added objects
-            // of this scene
-            for (var j=0; j < addedObjects[currentScene].length; j++) {
-                if (
-                    addedObjects[currentScene][j]['name'] ==
-                    deletedObjects[currentScene][j]
-                )
-                {
-                    addedObjects[currentScene].splice(j, 1);
-                }
-            }
         }
     }
 }
