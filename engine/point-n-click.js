@@ -149,7 +149,7 @@ function goDoor(door) {
     doors = [];
     doorAttribs = [];
     var doorsContainer = svgDocument.getElementById('doors');
-    var oldDoors = doorsContainer.getElementsByTagName('circle');
+    var oldDoors = doorsContainer.getElementsByTagName('svg');
     var doorsCount = oldDoors.length;
     for (var i = 0; i < doorsCount; i++) {
         doorsContainer.removeChild(oldDoors[i]);
@@ -407,7 +407,7 @@ function onMouseOverElement(evt) {
     if (evt.target.id.match('door')) {
         if (mode == walk) {
             hintText.nodeValue = hintText.nodeValue +
-                evt.target.getElementsByTagName('desc')[0].firstChild.nodeValue;
+                evt.target.parentNode.getElementsByTagName('desc')[0].firstChild.nodeValue;
         }
     } else if (evt.target.id.match('object')) {
         if (mode == use_object) {
@@ -563,23 +563,32 @@ Functions to create different scene elements
 */
 
 // Create door
-function createDoor(x, y, targetScene, newX, newY) {
+function createDoor(x, y, targetScene, newX, newY, doorFile) {
     var n = doorAttribs.push({}) - 1;
     doorAttribs[n]['x'] = x;
     doorAttribs[n]['y'] = y;
     doorAttribs[n]['sceneName'] = targetScene;
     doorAttribs[n]['newX'] = newX;
     doorAttribs[n]['newY'] = newY;
+    // Door image
     var newDoor = svgDocument.createElementNS(
         'http://www.w3.org/2000/svg',
-        'circle'
+        'svg'
     );
-    newDoor.setAttribute('cx', (x * cellSizeX) + (cellSizeX / 2));
-    newDoor.setAttribute('cy', (y * cellSizeY) + (cellSizeY / 2));
-    newDoor.setAttribute('r', '20');
-    newDoor.setAttribute('fill', 'lightpink');
-    newDoor.setAttribute('stroke', 'lightcoral');
-    newDoor.setAttribute('stroke-width', '4');
+    newDoor.setAttribute(
+        'x',
+        x * cellSizeX
+    );
+    newDoor.setAttribute(
+        'y',
+        y * cellSizeY
+    );
+    newDoor.setAttribute('width', cellSizeX);
+    newDoor.setAttribute('height', cellSizeY);
+    newDoor.setAttribute(
+        'viewBox',
+        '0 0 ' + cellSizeX + ' ' + cellSizeY
+    );
     newDoor.setAttribute('id', 'door-to-' + targetScene);
     var newTitle = svgDocument.createElement('title');
     newTitle.appendChild(svgDocument.createTextNode(targetScene));
@@ -587,18 +596,31 @@ function createDoor(x, y, targetScene, newX, newY) {
     var newDescription = svgDocument.createElement('desc');
     newDescription.appendChild(svgDocument.createTextNode(targetScene));
     newDoor.appendChild(newDescription);
+    var newDoorImage = svgDocument.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'image'
+    );
+    newDoorImage.setAttributeNS(
+        'http://www.w3.org/1999/xlink',
+        'xlink:href',
+        doorFile
+    );
+    newDoorImage.setAttribute('width', cellSizeX);
+    newDoorImage.setAttribute('height', cellSizeY);
+    newDoorImage.setAttribute('id', 'door' + n);
     // On click go to door
-    newDoor.addEventListener(
+    newDoorImage.addEventListener(
         'click',
         onClickToBackground,
         false
     );
     // On mouse over show hint
-    newDoor.addEventListener(
+    newDoorImage.addEventListener(
         'mouseover',
         onMouseOverElement,
         false
     );
+    newDoor.appendChild(newDoorImage);
     svgDocument.getElementById('doors').appendChild(
         newDoor
     );
