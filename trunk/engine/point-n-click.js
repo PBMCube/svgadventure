@@ -153,6 +153,7 @@ function goDoor(door) {
     targetX = heroX;
     targetY = heroY;
     // Remove old doors
+    doorAttribs = [];
     cleanNode(svgDocument.getElementById('doors'));
     // Remove old objects
     objects = [];
