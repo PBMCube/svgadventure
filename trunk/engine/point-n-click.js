@@ -63,7 +63,14 @@ function collection2array(c) {
             a.push(c[i]);
         }
         return a;
+}
+
+// Remove all child nodes for given node
+function cleanNode(n) {
+    while (n.hasChildNodes()) {
+        n.removeChild(n.firstChild);
     }
+}
 
 /*
 */
@@ -146,14 +153,7 @@ function goDoor(door) {
     targetX = heroX;
     targetY = heroY;
     // Remove old doors
-    doors = [];
-    doorAttribs = [];
-    var doorsContainer = svgDocument.getElementById('doors');
-    var oldDoors = doorsContainer.getElementsByTagName('svg');
-    var doorsCount = oldDoors.length;
-    for (var i = 0; i < doorsCount; i++) {
-        doorsContainer.removeChild(oldDoors[i]);
-    }
+    cleanNode(svgDocument.getElementById('doors'));
     // Remove old objects
     objects = [];
     var objectsContainer = svgDocument.getElementById('objects');

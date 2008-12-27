@@ -50,6 +50,7 @@ function sceneSetup() {
         }
     );
     createDoor(0, 0, 'scene002', 0, 6, 'sc001_door01.png');
+    createDoor(0, 5, 'scene003', 0, 6, 'sc001_door01.png');
     var n = createObject(5, 5, 20, 20, 'sc001_obj01.png', 'Crystal Rock 1');
     if (n != -1) {
         objects[n]['use'] = useObject1;
